@@ -52,3 +52,11 @@ OpenFrameworks.gitignore
 
 
 # End of https://www.toptal.com/developers/gitignore/api/twincat3
+# Claude Code
+.claude/
+
+.vs
+.~u
+*.~u
+
+*.bak

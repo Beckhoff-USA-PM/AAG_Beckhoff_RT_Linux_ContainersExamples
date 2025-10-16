@@ -1,0 +1,87 @@
+# Docker Compose file for connecting to host TwinCAT via ADS-over-MQTT
+# Network configuration is centralized in config/config-host-mqtt.env
+#
+# This sets up two containers:
+# 1. MQTT Broker (Mosquitto) - message broker for ADS-over-MQTT communication
+# 2. PowerShell Client - test client that connects to host TwinCAT system
+
+name: "hostmqtt"
+
+services:
+  # ============================================================================
+  # MQTT Broker (Mosquitto)
+  # ============================================================================
+  # Acts as the message broker between containers and host TwinCAT system
+  mosquitto:
+    image: eclipse-mosquitto              # Use official Mosquitto image from Docker Hub
+    container_name: hostmqtt-broker       # Friendly container name for logs/commands
+    hostname: mosquitto                   # Hostname within Docker network
+
+    ports:
+      - "1883:1883"                       # Expose MQTT port to host (for TwinCAT connection)
+
+    restart: unless-stopped               # Auto-restart on failure and after reboot
+
+    volumes:
+      # Mount local config file into container
+      - ./containers/mosquitto/simple-mosquitto.conf:/mosquitto/config/mosquitto.conf
+      # Mount persistent volume for MQTT data (retained messages, subscriptions)
+      - mosquitto_data:/mosquitto/data
+
+    env_file: "config/config-host-mqtt.env"  # Load environment variables
+
+    networks:
+      twincatads:
+        ipv4_address: ${MQTT_BROKER_IP}   # Static IP from config (default: 192.168.20.2)
+
+  # ============================================================================
+  # PowerShell Client
+  # ============================================================================
+  # Test client that connects to host TwinCAT system via MQTT
+  pwshclient:
+    env_file: "config/config-host-mqtt.env"  # Load environment variables
+
+    environment:
+      # Additional runtime environment variables
+      - ChannelProtocol=AdsOverMqtt       # Use ADS-over-MQTT protocol
+      - HOST_AMS_NETID=${HOST_AMS_NETID}  # Host TwinCAT NetID (auto-retrieved by Makefile)
+
+    depends_on:
+      - mosquitto                         # Wait for broker to start first
+
+    build:
+      context: .                          # Build from current directory
+      dockerfile: ./containers/pwsh-client/Dockerfile
+
+    restart: unless-stopped               # Auto-restart on failure and after reboot
+
+    networks:
+      twincatads:
+        ipv4_address: ${PWSH_CLIENT_IP}   # Static IP from config (default: 192.168.20.5)
+
+    stdin_open: true                      # Keep stdin open (for interactive shell)
+    tty: true                             # Allocate pseudo-TTY (for interactive shell)
+
+# ==============================================================================
+# Docker Volumes
+# ==============================================================================
+# Persistent storage that survives container restarts
+volumes:
+  mosquitto_data:
+    name: hostmqtt-data                   # Named volume for MQTT broker persistence
+
+# ==============================================================================
+# Docker Networks
+# ==============================================================================
+# Custom bridge network for container communication
+networks:
+  twincatads:
+    name: twincatads-host                 # Network name visible to Docker
+    driver: bridge                        # Standard Docker bridge network
+    driver_opts:
+      com.docker.network.bridge.name: br-tcads-mqtt  # Linux bridge interface name
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_SUBNET}        # Network subnet (default: 192.168.20.0/24)
+          gateway: ${DOCKER_GATEWAY}      # Gateway IP (default: 192.168.20.1)
