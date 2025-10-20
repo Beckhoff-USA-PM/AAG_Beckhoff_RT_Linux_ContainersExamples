@@ -191,6 +191,9 @@ Then run PowerShell commands manually:
 # Check ADS state (verify connection via MQTT)
 PS> New-TcSession -NetId "5.111.241.147.1.1" -Port 851 | Get-AdsState
 
+# Test latencies/roundtrip times
+PS> Test-AdsRoute -NetId "5.111.241.147.1.1" -Port 851 -count 20
+
 # Read a value
 PS> (New-TcSession -NetId '5.111.241.147.1.1' -Port 851 | Get-TcSymbol -Path "MAIN.nCounter") | Read-TcValue
 
