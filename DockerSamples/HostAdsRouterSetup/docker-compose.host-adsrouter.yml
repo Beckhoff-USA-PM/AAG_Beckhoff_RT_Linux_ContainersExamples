@@ -1,0 +1,69 @@
+# Docker Compose file for connecting to host TwinCAT via AdsRouterConsole
+# Network configuration is centralized in config/config-host-adsrouter.env
+#
+# This sets up two containers:
+# 1. ADS Router (AdsRouterConsole) - routes ADS traffic between containers and host
+# 2. PowerShell Client - test client that connects to host TwinCAT system
+
+name: "hostrouter"
+
+services:
+  # ============================================================================
+  # ADS Router (AdsRouterConsole)
+  # ============================================================================
+  # Routes ADS protocol traffic between containers and host TwinCAT system
+  router:
+    env_file: "config/config-host-adsrouter.env"  # Load environment variables
+    container_name: hostrouter-router             # Friendly container name for logs/commands
+    hostname: router                              # Hostname within Docker network
+
+    build:
+      context: .                                  # Build from current directory
+      dockerfile: containers/router/Dockerfile    # Dockerfile location
+
+    restart: unless-stopped                       # Auto-restart on failure and after reboot
+
+    networks:
+      twincatads:
+        ipv4_address: 192.168.21.2                # Static IP (router loopback address)
+
+  # ============================================================================
+  # PowerShell Client
+  # ============================================================================
+  # Test client that connects to host TwinCAT system via ADS router
+  pwshclient:
+    env_file: "config/config-host-adsrouter.env"  # Load environment variables
+
+    environment:
+      # Additional runtime environment variables
+      - HOST_AMS_NETID=${HOST_AMS_NETID}          # Host TwinCAT NetID (auto-retrieved by Makefile)
+
+    depends_on:
+      - router                                    # Wait for router to start first
+
+    build:
+      context: .                                  # Build from current directory
+      dockerfile: containers/pwsh-client/Dockerfile
+
+    restart: unless-stopped                       # Auto-restart on failure and after reboot
+
+    networks:
+      twincatads:
+        ipv4_address: 192.168.21.5                # Static IP from config (default: 192.168.21.5)
+
+    stdin_open: true                              # Keep stdin open (for interactive shell)
+    tty: true                                     # Allocate pseudo-TTY (for interactive shell)
+
+# ==============================================================================
+# Docker Networks
+# ==============================================================================
+# Custom bridge network for container communication
+networks:
+  twincatads:
+    name: br-tcads-router                         # Network name visible to Docker and system
+    driver: bridge                                # Standard Docker bridge network
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.21.0/24                 # Network subnet (default: 192.168.21.0/24)
+          gateway: 192.168.21.1                   # Gateway IP (default: 192.168.21.1)

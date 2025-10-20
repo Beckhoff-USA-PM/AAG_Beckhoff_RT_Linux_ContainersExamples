@@ -60,3 +60,7 @@ OpenFrameworks.gitignore
 *.~u
 
 *.bak
+
+DockerSamples/DockerSamples/
+
+CLAUDE.md

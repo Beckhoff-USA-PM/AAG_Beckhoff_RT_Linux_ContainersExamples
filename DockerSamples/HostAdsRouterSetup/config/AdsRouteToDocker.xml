@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<TcConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2009/05/TcConfig">
+	<RemoteConnections>
+		<Route>
+			<Name>DockerContainerNetwork</Name>
+			<Address>192.168.21.2</Address>
+			<NetId>43.43.43.43.1.1</NetId>
+			<Type>TCP_IP</Type>
+			<Flags>64</Flags>
+		</Route>
+	</RemoteConnections>
+</TcConfig>
