@@ -8,7 +8,7 @@ export
 # Automatically retrieve the host AMS NetID
 HOST_AMS_NETID := $(shell tcadstool 127.0.0.1 netid 2>/dev/null || echo "")
 
-.PHONY: help up up-d down build logs logs-broker logs-client attach attach-read attach-write restart clean test-port monitor-mqtt monitor-mqtt-all install-mqtt-tools configure-host factory-reset status check-netid
+.PHONY: help up up-d down build logs logs-broker logs-client attach attach-read attach-write test-latency restart clean test-port monitor-mqtt monitor-mqtt-all install-mqtt-tools configure-host factory-reset status check-netid
 
 # Default target - show help
 help:
@@ -24,6 +24,7 @@ help:
 	@echo "  make attach          - Attach to PowerShell client container"
 	@echo "  make attach-read     - Test reading MAIN.nCounter from host"
 	@echo "  make attach-write    - Test writing value 42 to MAIN.nCounter on host"
+	@echo "  make test-latency    - Test ADS latency with 20 roundtrips"
 	@echo "  make restart         - Restart all containers"
 	@echo "  make clean           - Stop containers and remove volumes"
 	@echo "  make status          - Show container status"
@@ -101,6 +102,17 @@ attach-write:
 	@echo "Writing value 42 to MAIN.nCounter..."
 	docker exec -it hostmqtt-pwshclient-1 pwsh -Command "(New-TcSession -NetId '$(HOST_AMS_NETID)' -Port 851 | Get-TcSymbol -Path 'MAIN.nCounter') | Write-TcValue -Value 42 -Force"
 	@echo "✓ Write complete"
+
+# Test ADS latency with 20 roundtrips
+test-latency:
+	@if [ -z "$(HOST_AMS_NETID)" ]; then \
+		echo "⚠️  Error: Could not retrieve host AMS NetID"; \
+		echo "   Make sure TwinCAT is running and tcadstool is available"; \
+		exit 1; \
+	fi
+	@echo "Testing ADS latency to host at $(HOST_AMS_NETID):851..."
+	@echo "Running 20 roundtrip tests..."
+	docker exec -it hostmqtt-pwshclient-1 pwsh -Command "Test-AdsRoute -NetId '$(HOST_AMS_NETID)' -Port 851 -count 20"
 
 # Restart containers
 restart:

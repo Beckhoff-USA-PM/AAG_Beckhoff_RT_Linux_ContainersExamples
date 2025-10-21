@@ -8,7 +8,7 @@ export
 # Automatically retrieve the host AMS NetID
 HOST_AMS_NETID := $(shell tcadstool 127.0.0.1 netid 2>/dev/null || echo "")
 
-.PHONY: help up up-d down build logs logs-router logs-client attach attach-read attach-write restart clean test-route status check-netid configure-host factory-reset
+.PHONY: help up up-d down build logs logs-router logs-client attach attach-read attach-write test-latency restart clean test-route status check-netid configure-host factory-reset
 
 # Default target - show help
 help:
@@ -25,6 +25,7 @@ help:
 	@echo "  make attach          - Attach to PowerShell client container"
 	@echo "  make attach-read     - Test reading MAIN.nCounter from host"
 	@echo "  make attach-write    - Test writing value 42 to MAIN.nCounter on host"
+	@echo "  make test-latency    - Test ADS latency with 20 roundtrips"
 	@echo "  make restart         - Restart all containers"
 	@echo "  make clean           - Stop containers and remove volumes"
 	@echo "  make status          - Show container status"
@@ -103,6 +104,17 @@ attach-write:
 	docker exec -it hostrouter-pwshclient-1 pwsh -Command "(New-TcSession -NetId '$(HOST_AMS_NETID)' -Port 851 | Get-TcSymbol -Path 'MAIN.nCounter') | Write-TcValue -Value 42 -Force"
 	@echo "✓ Write complete"
 
+# Test ADS latency with 20 roundtrips
+test-latency:
+	@if [ -z "$(HOST_AMS_NETID)" ]; then \
+		echo "⚠️  Error: Could not retrieve host AMS NetID"; \
+		echo "   Make sure TwinCAT is running and tcadstool is available"; \
+		exit 1; \
+	fi
+	@echo "Testing ADS latency to host at $(HOST_AMS_NETID):851..."
+	@echo "Running 20 roundtrip tests..."
+	docker exec -it hostrouter-pwshclient-1 pwsh -Command "Test-AdsRoute -NetId '$(HOST_AMS_NETID)' -Port 851 -count 20"
+
 # Restart containers
 restart:
 	docker compose -f docker-compose.host-adsrouter.yml restart
@@ -175,9 +187,6 @@ configure-host:
 	@echo "=========================================="
 	@echo "✓ Host configuration complete!"
 	@echo "=========================================="
-	@echo ""
-	@echo "Verify ADS route:"
-	@echo "  tcadstool 127.0.0.1 routes"
 	@echo ""
 	@echo "Verify firewall rules:"
 	@echo "  sudo nft list ruleset | grep 4889"

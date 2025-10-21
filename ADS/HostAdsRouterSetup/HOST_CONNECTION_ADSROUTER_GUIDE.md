@@ -2,22 +2,7 @@
 
 This guide shows how to connect Docker containers to a TwinCAT/ADS server running on the Docker host machine using **plain ADS routing** with AdsRouterConsole.
 
-## Overview
-
-This setup demonstrates bidirectional ADS communication between Docker containers and a host TwinCAT system:
-
-- **Host System:** Beckhoff RT Linux (tc31-xar-um) running TwinCAT with a PLC program port 851
-- **Container Router:** AdsRouterConsole providing ADS routing services
-- **Container Clients:**
-  - AdsClient (automated monitoring)
-  - PowerShell client (interactive testing)
-- **Host NetID Detection:** Automatically retrieved using `tcadstool`
-
-**Prerequisites:**
-- [Docker and Docker Compose installed on the host](https://docs.docker.com/engine/install/debian/)
-- Make utility: `sudo apt install --yes make`
-- [Example TwinCAT project](../../../TwinCAT%20Project/TwinCAT%20Project/) running on the host
-- User must be in the `docker` group or use `sudo` for Docker commands
+> **Note:** For prerequisites, overview, and comparison with ADS-over-MQTT, see [ADS README](../README.md).
 
 ## Architecture Overview
 
@@ -118,7 +103,7 @@ On your **Beckhoff RT Linux tc31-xar-um** host, clone this repository:
 ssh Administrator@BTN-000s6dhd
 cd ~
 git clone <repository-url>
-cd AAG_Beckhoff_RT_Linux_ContainersExamples/DockerSamples/HostAdsRouterSetup
+cd AAG_Beckhoff_RT_Linux_ContainersExamples/ADS/HostAdsRouterSetup
 ```
 
 ### Step 3: Configure Host Static Route
@@ -343,45 +328,6 @@ Both clients route through the same AdsRouterConsole at 192.168.21.2, demonstrat
 make down       # Stop and remove containers
 make clean      # Stop, remove containers, and delete volumes
 ```
-
-## Key Differences from ADS-over-MQTT
-
-| Aspect | Plain ADS (This Guide) | ADS-over-MQTT |
-|--------|------------------------|---------------|
-| Routing | Requires AdsRouterConsole | Uses MQTT broker |
-| Static Routes | Required on host | Not needed |
-| Port Configuration | Custom loopback port (48900) | Standard MQTT (1883) |
-| Discovery | Manual route configuration | Automatic via broker |
-| Latency | Lower (direct ADS) | Higher (MQTT overhead) |
-| Network Flexibility | Same network only | Works across NAT |
-
-
-## When to Use ADS Router vs MQTT
-
-**Use Plain ADS Router (this guide) when:**
-- All devices are on the same local network or can reach via Docker bridge
-- You need lowest possible latency
-- You have full control over routing configuration
-
-**Use ADS-over-MQTT when:**
-- Devices are across different networks or NAT boundaries
-- You want simplified configuration without static routes
-- You need flexibility in network topology
-
-## Performance Comparison
-
-Typical latency measurements (from container to host TwinCAT on same machine):
-
-| Method | Avg Latency | Notes |
-|--------|-------------|-------|
-| Plain ADS Router | 1-5ms | This guide |
-| ADS-over-MQTT | 40-50ms | Higher due to MQTT serialization |
-
-Use `Test-AdsRoute` in PowerShell to measure your actual latency:
-```powershell
-PS> Test-AdsRoute -NetId "5.111.241.147.1.1" -Port 851 -count 100
-```
-
 
 ## Disclaimer 
 
