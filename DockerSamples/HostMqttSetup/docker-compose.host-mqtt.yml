@@ -76,7 +76,7 @@ volumes:
 # Custom bridge network for container communication
 networks:
   twincatads:
-    name: twincatads-host                 # Network name visible to Docker
+    name: br-tcads-mqtt                # Network name visible to Docker
     driver: bridge                        # Standard Docker bridge network
     driver_opts:
       com.docker.network.bridge.name: br-tcads-mqtt  # Linux bridge interface name

@@ -100,3 +100,8 @@ See [docs/HOST_CONNECTION_MQTT_GUIDE.md](docs/HOST_CONNECTION_MQTT_GUIDE.md) for
 - **Can't retrieve AMS NetID**: Ensure TwinCAT is running and `tcadstool` is installed
 - **MQTT connection fails**: Check that TwinCAT MQTT transport is enabled and configured
 - **Network conflicts**: Edit IP addresses in `config/config-host-mqtt.env`
+
+
+## Disclaimer 
+
+All sample code provided by Beckhoff Automation LLC are for illustrative purposes only and are provided “as is” and without any warranties, express or implied. Actual implementations in applications will vary significantly. Beckhoff Automation LLC shall have no liability for, and does not waive any rights in relation to, any code samples that it provides or the use of such code samples for any purpose.

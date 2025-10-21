@@ -25,12 +25,36 @@ services:
 
     networks:
       twincatads:
-        ipv4_address: 192.168.21.2                # Static IP (router loopback address)
+        ipv4_address: ${ROUTER_IP}                # Static IP (router loopback address)
+
+  # ============================================================================
+  # ADS Client
+  # ============================================================================
+  # Automated test client that reads host TwinCAT state every second (port 851)
+  adsclient:
+    env_file: "config/config-host-adsrouter.env"  # Load environment variables
+
+    environment:
+      # Additional runtime environment variables
+      - HOST_AMS_NETID=${HOST_AMS_NETID}          # Host TwinCAT NetID (auto-retrieved by Makefile)
+
+    depends_on:
+      - router                                    # Wait for router to start first
+
+    build:
+      context: .                                  # Build from current directory
+      dockerfile: containers/AdsClient/Dockerfile
+
+    restart: unless-stopped                       # Auto-restart on failure and after reboot
+
+    networks:
+      twincatads:
+        ipv4_address: ${ADS_CLIENT_IP}            # Static IP (default: 192.168.21.4)
 
   # ============================================================================
   # PowerShell Client
   # ============================================================================
-  # Test client that connects to host TwinCAT system via ADS router
+  # Interactive test client that connects to host TwinCAT system via ADS router
   pwshclient:
     env_file: "config/config-host-adsrouter.env"  # Load environment variables
 
@@ -49,7 +73,7 @@ services:
 
     networks:
       twincatads:
-        ipv4_address: 192.168.21.5                # Static IP from config (default: 192.168.21.5)
+        ipv4_address: ${PWSH_CLIENT_IP}           # Static IP from config (default: 192.168.21.5)
 
     stdin_open: true                              # Keep stdin open (for interactive shell)
     tty: true                                     # Allocate pseudo-TTY (for interactive shell)
@@ -62,8 +86,10 @@ networks:
   twincatads:
     name: br-tcads-router                         # Network name visible to Docker and system
     driver: bridge                                # Standard Docker bridge network
+    driver_opts:
+      com.docker.network.bridge.name: br-tcads-router   # Linux bridge interface name
     ipam:
       driver: default
       config:
-        - subnet: 192.168.21.0/24                 # Network subnet (default: 192.168.21.0/24)
-          gateway: 192.168.21.1                   # Gateway IP (default: 192.168.21.1)
+        - subnet: ${DOCKER_SUBNET}                # Network subnet (default: 192.168.21.0/24)
+          gateway: ${DOCKER_GATEWAY}              # Gateway IP (default: 192.168.21.1)

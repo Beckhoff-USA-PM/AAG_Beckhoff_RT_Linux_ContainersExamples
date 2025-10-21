@@ -3,8 +3,8 @@
 	<RemoteConnections>
 		<Route>
 			<Name>DockerContainerNetwork</Name>
-			<Address>192.168.21.2</Address>
-			<NetId>43.43.43.43.1.1</NetId>
+			<Address>192.168.21.2</Address> <!-- IP Address of the Ads router container-->
+			<NetId>43.43.43.43.1.1</NetId> <!-- Virtual Ams netid set in config-host-adsrouter.env, variable AmsRouter__NetId -->
 			<Type>TCP_IP</Type>
 			<Flags>64</Flags>
 		</Route>

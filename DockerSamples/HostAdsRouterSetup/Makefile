@@ -1,5 +1,5 @@
 # Makefile for Docker ADS Router Host Connection
-# Simplifies common operations from docs/HOST_CONNECTION_ADSROUTER_GUIDE.md
+# Simplifies common operations from HOST_CONNECTION_ADSROUTER_GUIDE.md
 
 # Load environment variables from config file
 include config/config-host-adsrouter.env
@@ -20,7 +20,8 @@ help:
 	@echo "  make build           - Build containers without starting"
 	@echo "  make logs            - Show all container logs"
 	@echo "  make logs-router     - Show only ADS router logs"
-	@echo "  make logs-client     - Show only PowerShell client logs"
+	@echo "  make logs-client     - Show only ADS client logs"
+	@echo "  make logs-pwsh       - Show only PowerShell client logs"
 	@echo "  make attach          - Attach to PowerShell client container"
 	@echo "  make attach-read     - Test reading MAIN.nCounter from host"
 	@echo "  make attach-write    - Test writing value 42 to MAIN.nCounter on host"
@@ -28,7 +29,6 @@ help:
 	@echo "  make clean           - Stop containers and remove volumes"
 	@echo "  make status          - Show container status"
 	@echo "  make check-netid     - Check if host AMS NetID can be retrieved"
-	@echo "  make test-route      - Test if ADS router port 48900 is accessible"
 	@echo "  make configure-host  - Configure host: Add static route to TwinCAT (requires sudo)"
 	@echo ""
 	@echo "  make factory-reset   - ⚠️  Factory reset Docker (removes ALL containers/images/volumes/networks)"
@@ -68,8 +68,12 @@ logs:
 logs-router:
 	docker logs -f hostrouter-router
 
-# Show only client logs
+# Show only ADS client logs
 logs-client:
+	docker logs -f hostrouter-adsclient-1
+
+# Show only PowerShell client logs
+logs-pwsh:
 	docker logs -f hostrouter-pwshclient-1
 
 # Attach to PowerShell client
@@ -106,11 +110,6 @@ restart:
 # Stop containers and remove volumes
 clean:
 	docker compose -f docker-compose.host-adsrouter.yml down -v
-
-# Test if ADS router port is accessible
-test-route:
-	@echo "Testing ADS router port 48900..."
-	@timeout 2 bash -c 'cat < /dev/null > /dev/tcp/192.168.21.2/48900' && echo "✓ Port 48900 is open" || echo "✗ Port 48900 is closed"
 
 # Configure host: Add static route to TwinCAT
 configure-host:
