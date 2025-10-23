@@ -1,0 +1,6 @@
+# Ensure Linux config files always use LF line endings, even on Windows
+*.conf text eol=lf
+*.xml text eol=lf
+*.sh text eol=lf
+Makefile text eol=lf
+*.md text eol=lf
