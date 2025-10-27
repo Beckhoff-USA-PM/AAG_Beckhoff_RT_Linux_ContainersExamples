@@ -103,7 +103,7 @@ On your **Beckhoff RT Linux tc31-xar-um** host, clone this repository:
 ssh Administrator@BTN-000s6dhd
 cd ~
 git clone <repository-url>
-cd AAG_Beckhoff_RT_Linux_ContainersExamples/ADS/HostAdsRouterSetup
+cd AAG_Beckhoff_RT_Linux_Containers_Examples/ADS/HostAdsRouterSetup
 ```
 
 ### Step 3: Configure Host Static Route

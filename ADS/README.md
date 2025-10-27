@@ -1,6 +1,6 @@
 # TwinCAT ADS Communication from Docker Containers
 
-This directory contains production-ready setups for connecting Docker containers to TwinCAT systems running on Beckhoff RT Linux hosts.
+This directory contains examples for connecting Docker containers to TwinCAT systems running on Beckhoff RT Linux hosts.
 
 ## Two Approaches
 
